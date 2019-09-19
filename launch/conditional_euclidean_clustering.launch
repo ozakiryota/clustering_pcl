@@ -14,7 +14,13 @@
 	<include file="$(find velodyne_pointcloud)/launch/32e_points.launch"/>
 
 	<!-- semi-driver -->
-	<node pkg="normal_estimation_pcl" name="normal_estimation_pcl_omp" type="normal_estimation_pcl_omp"/>
+	<!-- <node pkg="normal_estimation_pcl" name="normal_estimation_pcl_omp" type="normal_estimation_pcl_omp"/> -->
+	<node pkg="gaussian_sphere_slam" name="d_gaussian_sphere" type="d_gaussian_sphere" output="screen">
+		<param name="skip" type="int" value="3"/>
+		<!-- <param name="mode_remove_ground" type="bool" value="true"/> -->
+		<param name="mode_open_viewer" type="bool" value="false"/>
+		<param name="mode_clustering" type="bool" value="false"/>
+	</node>
 
 	<!-- main -->
 	<node pkg="clustering_pcl" name="conditional_euclidean_clustering" type="conditional_euclidean_clustering" output="screen">

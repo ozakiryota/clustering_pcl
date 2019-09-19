@@ -105,7 +105,7 @@ bool ConditionalEuclideanClustering::CustomCondition(const pcl::PointNormal& see
 	);
 	double angle = acos(N1.dot(N2)/N1.norm()/N2.norm());
 
-	const double threshold_angle = 2.0;	//[deg]
+	const double threshold_angle = 1.0;	//[deg]
 	if(angle/M_PI*180.0 < threshold_angle)	return true;
 	else	return false;
 }
