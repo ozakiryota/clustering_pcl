@@ -100,25 +100,22 @@ void EuclideanClustering::Visualization(void)
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 0.0, "cloud");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud");
 	/*clusters*/
-	double color_ratio = 7.0/(double)clusters.size();	//111(2) = 7(10)
-	int step = 1;
-	std::vector<int> rgb(3, 0);
+	double rgb[3] = {};
+	const int channel = 3;
+	const double step = ceil(pow(clusters.size()+2, 1.0/(double)channel));	//exept (000),(111)
+	const double max = 1.0;
 	for(size_t i=0;i<clusters.size();i++){
 		std::string name = "cluster_" + std::to_string(i);
-		rgb[0] += step;
-		for(size_t j=0;j<rgb.size()-1;j++){
-			if(rgb[j]>step){
-				rgb[j] = 0;
-				rgb[j+1] += step;
+		rgb[0] += 1/step;
+		for(int j=0;j<channel-1;j++){
+			if(rgb[j]>max){
+				rgb[j] -= max + 1/step;
+				rgb[j+1] += 1/step;
 			}
 		}
 		viewer.addPointCloud(clusters[i], name);
-		viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, rgb[0]*color_ratio, rgb[1]*color_ratio, rgb[2]*color_ratio, name);
+		viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, rgb[0], rgb[1], rgb[2], name);
 		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, name);
-		if(rgb[0]==step && rgb[1]==step && rgb[2]==step){
-			step++;
-			rgb = {0, 0, 0};
-		}
 	}
 	
 	viewer.spinOnce();
