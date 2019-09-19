@@ -3,7 +3,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-/* #include <pcl/segmentation/extract_clusters.h> */
 #include <pcl/segmentation/conditional_euclidean_clustering.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/visualization/cloud_viewer.h>
@@ -73,18 +72,6 @@ void ConditionalEuclideanClustering::Clustering(void)
 	cec.segment(cluster_indices);
 	// cec.getRemovedClusters (small_clusters, large_clusters);
 
-	/* #<{(|clustering|)}># */
-	/* pcl::search::KdTree<pcl::PointNormal>::Ptr tree (new pcl::search::KdTree<pcl::PointNormal>); */
-	/* tree->setInputCloud(cloud); */
-	/* std::vector<pcl::PointIndices> cluster_indices; */
-	/* pcl::EuclideanClusterExtraction<pcl::PointNormal> ece; */
-	/* ece.setClusterTolerance(cluster_tolerance); */
-	/* ece.setMinClusterSize(min_cluster_size); */
-	/* ece.setMaxClusterSize(cloud->points.size()); */
-	/* ece.setSearchMethod(tree); */
-	/* ece.setInputCloud(cloud); */
-	/* ece.extract(cluster_indices); */
-
 	std::cout << "cluster_indices.size() = " << cluster_indices.size() << std::endl;
 
 	/*dividing*/
@@ -107,7 +94,21 @@ void ConditionalEuclideanClustering::Clustering(void)
 
 bool ConditionalEuclideanClustering::CustomCondition(const pcl::PointNormal& seedPoint, const pcl::PointNormal& candidatePoint, float squaredDistance)
 {
-	return true;
+	Eigen::Vector3d N1(
+		seedPoint.normal_x,
+		seedPoint.normal_y,
+		seedPoint.normal_z
+	);
+	Eigen::Vector3d N2(
+		candidatePoint.normal_x,
+		candidatePoint.normal_y,
+		candidatePoint.normal_z
+	);
+	double angle = acos(N1.dot(N2)/N1.norm()/N2.norm());
+
+	const double threshold_angle = 2.0;	//[deg]
+	if(angle/M_PI*180.0 < threshold_angle)	return true;
+	else	return false;
 }
 
 void ConditionalEuclideanClustering::Visualization(void)
@@ -119,27 +120,27 @@ void ConditionalEuclideanClustering::Visualization(void)
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 0.0, "cloud");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 0.5, "cloud");
 	/*clusters*/
-	double color_ratio = 7.0/(double)clusters.size();	//111(2) = 7(10)
-	int step = 1;
-	std::vector<int> rgb(3, 0);
+	double rgb[3] = {};
+	const int channel = 3;
+	const double step = ceil(pow(clusters.size()+2, 1.0/(double)channel));	//exept (000),(111)
+	const double max = 1.0;
 	for(size_t i=0;i<clusters.size();i++){
 		std::string name = "cluster_" + std::to_string(i);
-		rgb[0] += step;
-		for(size_t j=0;j<rgb.size()-1;j++){
-			if(rgb[j]>step){
-				rgb[j] = 0;
-				rgb[j+1] += step;
+		rgb[0] += 1/step;
+		for(int j=0;j<channel-1;j++){
+			if(rgb[j]>max){
+				rgb[j] -= max + 1/step;
+				rgb[j+1] += 1/step;
 			}
 		}
+		/* std::cout << "step = " << step << std::endl; */
+		/* std::cout << name << ": (r,g,b) = " << rgb[0] << ", " << rgb[1] << ", " << rgb[2] << std::endl; */
+		/*input*/
 		viewer.addPointCloudNormals<pcl::PointNormal>(clusters[i], 1, 0.5, name);
-		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, rgb[0]*color_ratio, rgb[1]*color_ratio, rgb[2]*color_ratio, name);
+		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, rgb[0], rgb[1], rgb[2], name);
 		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 1, name);
-		if(rgb[0]==step && rgb[1]==step && rgb[2]==step){
-			step++;
-			rgb = {0, 0, 0};
-		}
 	}
-	
+
 	viewer.spinOnce();
 }
 
