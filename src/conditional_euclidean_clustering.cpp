@@ -64,7 +64,6 @@ void ConditionalEuclideanClustering::Clustering(void)
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::ConditionalEuclideanClustering<pcl::PointNormal> cec(true);
 	cec.setInputCloud(cloud);
-	// cec.setConditionFunction(&ConditionalEuclideanClustering::CustomCondition);
 	cec.setConditionFunction(&CustomCondition);
 	cec.setClusterTolerance(cluster_tolerance);
 	cec.setMinClusterSize(min_cluster_size);
