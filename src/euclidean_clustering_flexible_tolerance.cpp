@@ -134,9 +134,6 @@ void EuclideanClusteringFlexibleTolerance::Clustering(void)
 
 double EuclideanClusteringFlexibleTolerance::ComputeTolerance(const pcl::PointXYZ& point)
 {
-	/* const double min_tolerance = 0.1;	//[m] */
-	/* const double max_tolerance = 0.5;	//[m] */
-	/* const double ratio_depth_tolerance = 0.05; */
 	double depth = sqrt(
 		point.x * point.x
 		+ point.y * point.y
