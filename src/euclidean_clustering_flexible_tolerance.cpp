@@ -16,7 +16,6 @@ class EuclideanClusteringFlexibleTolerance{
 		/*subscribe*/
 		ros::Subscriber sub_pc;
 		/*pcl objects*/
-		pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud {new pcl::PointCloud<pcl::PointXYZ>};
 		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
 		pcl::visualization::PCLVisualizer viewer {"Euclidian Clustering"};
@@ -61,7 +60,6 @@ void EuclideanClusteringFlexibleTolerance::CallbackPC(const sensor_msgs::PointCl
 	std::cout << "==========" << std::endl;
 	std::cout << "cloud->points.size() = " << cloud->points.size() << std::endl;
 
-	kdtree.setInputCloud(cloud);
 	max_cluster_size = cloud->points.size();
 	clusters.clear();
 
@@ -73,13 +71,18 @@ void EuclideanClusteringFlexibleTolerance::Clustering(void)
 {
 	double time_start = ros::Time::now().toSec();
 
+	/*search config*/
+	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+	kdtree.setInputCloud(cloud);
+	max_cluster_size = cloud->points.size();
+	/*objects*/
 	std::vector<pcl::PointIndices> cluster_indices;
 	std::vector<bool> processed(cloud->points.size(), false);
 	std::vector<int> nn_indices;
 	std::vector<float> nn_distances;
+	/*clustering*/
 	for(size_t i=0;i<cloud->points.size();++i){
 		if(processed[i])	continue;
-
 		/*set seed*/
 		std::vector<int> seed_queue;
 		int sq_idx = 0;
@@ -111,10 +114,8 @@ void EuclideanClusteringFlexibleTolerance::Clustering(void)
 			cluster_indices.push_back(tmp_indices);
 		}
 	}
-
 	std::cout << "cluster_indices.size() = " << cluster_indices.size() << std::endl;
-
-	/*dividing*/
+	/*extraction*/
 	pcl::ExtractIndices<pcl::PointXYZ> ei;
 	ei.setInputCloud(cloud);
 	ei.setNegative(false);
